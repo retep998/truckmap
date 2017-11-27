@@ -1,0 +1,13 @@
+[package]
+name = "truckmap"
+version = "0.1.0"
+authors = ["Peter Atashian <retep998@gmail.com>"]
+
+[dependencies]
+image = { version = "0.17", default-features = false, features = ["png_codec"]}
+memmap = "0.6"
+reqwest = "0.8"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+winapi = "0.2"
