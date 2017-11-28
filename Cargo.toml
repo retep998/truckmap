@@ -3,6 +3,9 @@ name = "truckmap"
 version = "0.1.0"
 authors = ["Peter Atashian <retep998@gmail.com>"]
 
+[profile.release]
+debug = true
+
 [dependencies]
 image = { version = "0.17", default-features = false, features = ["png_codec"]}
 memmap = "0.6"

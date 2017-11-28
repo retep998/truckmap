@@ -9,15 +9,15 @@ extern crate winapi;
 
 mod color;
 
-use image::{ColorType, open, save_buffer};
+use image::{ColorType, ImageLuma8, open, save_buffer};
 use memmap::MmapMut;
 use serde_json::{Value, from_slice, from_value};
 use std::collections::{HashMap, HashSet};
 use std::fs::{OpenOptions, create_dir, read_dir, rename};
-use std::io::{Read};
+use std::io::Read;
 use std::os::windows::fs::OpenOptionsExt;
 use std::path::{Path, PathBuf};
-use winapi::{FILE_SHARE_READ};
+use winapi::FILE_SHARE_READ;
 
 #[derive(Debug)]
 pub enum Error {
@@ -121,7 +121,10 @@ impl Image {
     fn load_scaled(path: &Path, x: i64, y: i64) -> Result<Image> {
         let path = path.join(x.to_string()).join(format!("{}.png", y));
         use color::decode_srgb as dec;
-        let ref img = open(&path)?.to_luma().into_raw();
+        let ref img = match open(&path)? {
+            ImageLuma8(img) => img,
+            foo => foo.to_luma(),
+        }.into_raw();
         assert!(img.len() == 1024 * 1024);
         let data = (0..512).flat_map(|y| {
             let yi = y * 2048;
@@ -301,6 +304,7 @@ impl DataCollector {
                 Some(&server) => server,
                 None => continue,
             };
+            if truck.x.abs() > 1_000_000 || truck.y.abs() > 1_000_000 { continue }
             self.maps[server].set(truck.x, truck.y);
         }
         Ok(())
