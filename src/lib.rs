@@ -98,10 +98,18 @@ impl Tile {
         rename(&temp, path)?;
         Ok(())
     }
-    fn load(path: &Path) -> Result<Tile> {
-        let file = OpenOptions::new().read(true).write(true).create(true)
+    fn create(path: &Path) -> Result<Tile> {
+        let file = OpenOptions::new().read(true).write(true).create_new(true)
             .share_mode(FILE_SHARE_READ).open(path)?;
         file.set_len(1024 * 128)?;
+        let map = unsafe { MmapMut::map_mut(&file)? };
+        Ok(Tile {
+            map: map,
+        })
+    }
+    fn load(path: &Path) -> Result<Tile> {
+        let file = OpenOptions::new().read(true).write(true)
+            .share_mode(FILE_SHARE_READ).open(path)?;
         let map = unsafe { MmapMut::map_mut(&file)? };
         Ok(Tile {
             map: map,
@@ -188,10 +196,10 @@ impl Map {
         let (ix, iy) = (x & 1023, y & 1023);
         let path = &self.path;
         let tile = self.tiles.entry((tx, ty)).or_insert_with(|| {
-            let px = path.join("raw").join(x.to_string());
+            let px = path.join("raw").join(tx.to_string());
             let _ = create_dir(&px);
-            let pxy = px.join(format!("{}.dat", y));
-            Tile::load(&pxy).unwrap()
+            let pxy = px.join(format!("{}.dat", ty));
+            Tile::create(&pxy).unwrap()
         });
         tile.set(ix as u32, iy as u32);
     }
